@@ -1,9 +1,11 @@
 # screens/login_screen.py
+
 from screens.base_screen import BaseScreen
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.label import MDLabel
 from widgets.custom_buttons import RoundGradientButton
-from db_utils import check_login, is_verified
+from db_utils import check_login, is_verified, get_confirm_code
+from email_utils import send_confirm_code
 
 class LoginScreen(BaseScreen):
     def __init__(self, **kwargs):
@@ -37,6 +39,7 @@ class LoginScreen(BaseScreen):
         )
         self.add_widget(self.pass_field)
 
+        # Кнопка "Войти"
         btn_login = RoundGradientButton(
             text='Войти',
             size_hint=(0.4, None),
@@ -46,6 +49,7 @@ class LoginScreen(BaseScreen):
         )
         self.add_widget(btn_login)
 
+        # Кнопка "Назад"
         btn_back = RoundGradientButton(
             text='Назад',
             size_hint=(0.4, None),
@@ -56,6 +60,20 @@ class LoginScreen(BaseScreen):
             on_press=lambda x: setattr(self.manager, 'current', 'main')
         )
         self.add_widget(btn_back)
+
+        # Кнопка "Отправить код" (изначально прячем)
+        self.btn_resend = RoundGradientButton(
+            text='Отправить код повторно',
+            size_hint=(0.4, None),
+            height=50,
+            color_bottom=(0,0,0,1),
+            color_top=(0.2,0.2,0.2,1),
+            pos_hint={'center_x': 0.5, 'center_y': 0.18},
+            on_press=self._on_resend_code
+        )
+        self.btn_resend.opacity = 0
+        self.btn_resend.disabled = True
+        self.add_widget(self.btn_resend)
 
     def _on_login(self, instance):
         email = self.email_field.text.strip().lower()
@@ -68,6 +86,33 @@ class LoginScreen(BaseScreen):
                 # Переходим на карту
                 self.manager.current = "map"
             else:
-                self.error_label.text = "Подтвердите email перед входом!"
+                self.error_label.text = "Подтвердите email!"
+                # Показать кнопку "Отправить код повторно"
+                self.btn_resend.opacity = 1
+                self.btn_resend.disabled = False
         else:
             self.error_label.text = "Неверный логин или пароль!"
+            self.btn_resend.opacity = 0
+            self.btn_resend.disabled = True
+
+    def _on_resend_code(self, instance):
+        """
+        Отправляет код снова и переводит на экран "confirm_code".
+        Можно генерировать новый код, либо брать старый из БД.
+        """
+        email = self.email_field.text.strip().lower()
+        if not email:
+            return
+        # Можно взять старый код
+        code = get_confirm_code(email)
+        if not code:
+            self.error_label.text = "Пользователь не найден (резенд)."
+            return
+
+        # Отправляем код снова
+        send_confirm_code(email, code)
+
+        # Переходим к экрану ввода кода
+        confirm_screen = self.manager.get_screen("confirm_code")
+        confirm_screen.set_email(email)
+        self.manager.current = "confirm_code"
