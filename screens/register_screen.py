@@ -1,57 +1,81 @@
 # screens/register_screen.py
 
-from kivymd.uix.screen import MDScreen
+from screens.base_screen import BaseScreen
 from kivymd.uix.textfield import MDTextField
-from kivymd.uix.button import MDFlatButton
 from widgets.custom_buttons import RoundGradientButton
 
 def register_user(name, email, pwd, pwd2):
-    if pwd != pwd2:
-        print("[DEBUG] Пароли не совпадают!")
-        return
-    print(f"[DEBUG] Регистрация:\nИмя: {name}\nEmail: {email}\nПароль: {pwd}")
+    # Заглушка
+    print("[DEBUG] регистрация:", name, email, pwd, pwd2)
 
-class RegisterScreen(MDScreen):
+class RegisterScreen(BaseScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.md_bg_color = [0.1, 0.1, 0.1, 1]
 
-        hints = ['Имя', 'Почта', 'Пароль', 'Повторите пароль']
-        self.fields = []
+        # Три поля (или четыре) - 30% ширины
+        self.name_field = MDTextField(
+            hint_text="Имя",
+            mode='rectangle',
+            size_hint=(0.3, None),
+            height=44,
+            pos_hint={'center_x': 0.5, 'center_y': 0.7}
+        )
+        self.add_widget(self.name_field)
 
-        for i, hint in enumerate(hints):
-            field = MDTextField(
-                hint_text=hint,
-                size_hint=(0.8, None),
-                height=48,
-                pos_hint={'center_x': 0.5, 'center_y': 0.75 - (0.12 * i)},
-                password=('Пароль' in hint),
-                mode='round'
-            )
-            self.fields.append(field)
-            self.add_widget(field)
+        self.email_field = MDTextField(
+            hint_text="Почта",
+            mode='rectangle',
+            size_hint=(0.3, None),
+            height=44,
+            pos_hint={'center_x': 0.5, 'center_y': 0.6}
+        )
+        self.add_widget(self.email_field)
 
-        # Кнопка "Зарегистрироваться"
-        btn_register = RoundGradientButton(
+        self.pass1_field = MDTextField(
+            hint_text="Пароль",
+            mode='rectangle',
+            size_hint=(0.3, None),
+            height=44,
+            pos_hint={'center_x': 0.5, 'center_y': 0.5},
+            password=True
+        )
+        self.add_widget(self.pass1_field)
+
+        self.pass2_field = MDTextField(
+            hint_text="Повтор пароля",
+            mode='rectangle',
+            size_hint=(0.3, None),
+            height=44,
+            pos_hint={'center_x': 0.5, 'center_y': 0.4},
+            password=True
+        )
+        self.add_widget(self.pass2_field)
+
+        # Кнопка "Зарегистрироваться" (оранжевая, 0.4 ширины, 50 высота)
+        self.btn_register = RoundGradientButton(
             text='Зарегистрироваться',
-            size_hint=(0.7, 0.07),
-            pos_hint={'center_x': 0.5, 'center_y': 0.25},
+            size_hint=(0.4, None),
+            height=50,
+            pos_hint={'center_x': 0.5, 'center_y': 0.28},
             on_press=self._on_register
         )
-        self.add_widget(btn_register)
+        self.add_widget(self.btn_register)
 
-        # Кнопка "Назад"
-        btn_back = MDFlatButton(
+        # Кнопка "Назад" (чёрная)
+        self.btn_back = RoundGradientButton(
             text='Назад',
-            pos_hint={'center_x': 0.5, 'center_y': 0.15},
-            text_color='white',
+            size_hint=(0.4, None),
+            height=50,
+            pos_hint={'center_x': 0.5, 'center_y': 0.18},
+            color_bottom=(0, 0, 0, 1),
+            color_top=(0.2, 0.2, 0.2, 1),
             on_press=lambda x: setattr(self.manager, 'current', 'main')
         )
-        self.add_widget(btn_back)
+        self.add_widget(self.btn_back)
 
     def _on_register(self, instance):
-        name = self.fields[0].text
-        email = self.fields[1].text
-        pwd = self.fields[2].text
-        pwd2 = self.fields[3].text
+        name = self.name_field.text
+        email = self.email_field.text
+        pwd = self.pass1_field.text
+        pwd2 = self.pass2_field.text
         register_user(name, email, pwd, pwd2)
