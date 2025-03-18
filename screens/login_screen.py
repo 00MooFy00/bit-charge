@@ -1,60 +1,73 @@
 # screens/login_screen.py
-
 from screens.base_screen import BaseScreen
 from kivymd.uix.textfield import MDTextField
+from kivymd.uix.label import MDLabel
 from widgets.custom_buttons import RoundGradientButton
-
-def login_user(email, password):
-    print(f"[DEBUG] Логин: {email}, Пароль: {password}")
+from db_utils import check_login, is_verified
 
 class LoginScreen(BaseScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # Поля ввода: ~1/3 экрана по ширине
-        self.field_email = MDTextField(
-            hint_text="Email",
-            mode='rectangle',  # или 'fill_rounded' с меньшим скруглением
-            size_hint=(0.3, None),  # 30% экрана
-            height=44,
-            pos_hint={'center_x': 0.5, 'center_y': 0.6},
-        )
-        self.add_widget(self.field_email)
 
-        self.field_password = MDTextField(
+        self.error_label = MDLabel(
+            text='',
+            halign='center',
+            theme_text_color='Custom',
+            text_color=(1,0,0,1),
+            pos_hint={'center_x': 0.5, 'center_y': 0.75}
+        )
+        self.add_widget(self.error_label)
+
+        self.email_field = MDTextField(
+            hint_text="Email",
+            mode='rectangle',
+            size_hint=(0.3, None),
+            height=44,
+            pos_hint={'center_x': 0.5, 'center_y': 0.6}
+        )
+        self.add_widget(self.email_field)
+
+        self.pass_field = MDTextField(
             hint_text="Пароль",
             mode='rectangle',
             size_hint=(0.3, None),
             height=44,
-            pos_hint={'center_x': 0.5, 'center_y': 0.5},
-            password=True
+            password=True,
+            pos_hint={'center_x': 0.5, 'center_y': 0.5}
         )
-        self.add_widget(self.field_password)
+        self.add_widget(self.pass_field)
 
-        # Кнопка "Войти" (оранжевая, пошире, допустим 0.4)
-        self.btn_login = RoundGradientButton(
+        btn_login = RoundGradientButton(
             text='Войти',
-            size_hint=(0.4, None),  # На 30% шире, чем поле (0.4 против 0.3)
-            height=50,  # Чем больше высота, тем более "пилюля"
+            size_hint=(0.4, None),
+            height=50,
             pos_hint={'center_x': 0.5, 'center_y': 0.38},
-            on_press=self._on_login,
-            # По умолчанию у тебя color_bottom=(1,0.3,0,1) и color_top=(1,0.6,0,1)
-            # Можно менять, если хочешь другой оранжевый
+            on_press=self._on_login
         )
-        self.add_widget(self.btn_login)
+        self.add_widget(btn_login)
 
-        # Кнопка "Назад" (чёрная)
-        self.btn_back = RoundGradientButton(
+        btn_back = RoundGradientButton(
             text='Назад',
             size_hint=(0.4, None),
             height=50,
+            color_bottom=(0,0,0,1),
+            color_top=(0.2,0.2,0.2,1),
             pos_hint={'center_x': 0.5, 'center_y': 0.28},
-            color_bottom=(0, 0, 0, 1),
-            color_top=(0.2, 0.2, 0.2, 1),
             on_press=lambda x: setattr(self.manager, 'current', 'main')
         )
-        self.add_widget(self.btn_back)
+        self.add_widget(btn_back)
 
     def _on_login(self, instance):
-        email = self.field_email.text
-        password = self.field_password.text
-        login_user(email, password)
+        email = self.email_field.text.strip().lower()
+        password = self.pass_field.text.strip()
+
+        if check_login(email, password):
+            # Логин и пароль верны. Проверим, verified ли
+            if is_verified(email):
+                self.error_label.text = ""
+                # Переходим на карту
+                self.manager.current = "map"
+            else:
+                self.error_label.text = "Подтвердите email перед входом!"
+        else:
+            self.error_label.text = "Неверный логин или пароль!"
