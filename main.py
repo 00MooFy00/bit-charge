@@ -1,10 +1,9 @@
-from kivy.lang import Builder
-from kivy.uix.screenmanager import ScreenManager
-from kivymd.app import MDApp
+# main.py
 
+from kivymd.app import MDApp
+from kivy.uix.screenmanager import ScreenManager
 # Импортируем наши экраны
-from screens import start_screen
-StartScreen = start_screen.StartScreen
+from screens.start_screen import StartScreen
 from screens.login_screen import LoginScreen
 from screens.register_screen import RegisterScreen
 
